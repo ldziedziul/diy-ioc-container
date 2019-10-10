@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'pl.dziedziul'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.assertj:assertj-core:3.11.1'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
+}
