@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -26,7 +27,31 @@ public class ContextFactory {
         var configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
         log.info("Creating context from configurations: {}", configurationClasses);
         Set<Object> configurations = createConfigurations(configurationClasses);
-        return new Context();
+        Set<BeanDefinition> beanDefinitions = createBeanDefinitions(configurations);
+        Context context = new Context();
+        return context;
+    }
+
+    private Set<BeanDefinition> createBeanDefinitions(final Set<Object> configurations) {
+        return configurations.stream()
+                    .map(this::createBeanDefinitions)
+                    .flatMap(Set::stream)
+                    .collect(toUnmodifiableSet());
+    }
+
+    private Set<BeanDefinition> createBeanDefinitions(Object configuration) {
+        return Arrays.stream(configuration.getClass().getDeclaredMethods())
+                .filter(meth -> meth.isAnnotationPresent(Bean.class))
+                .map(meth -> createBeanDefinition(meth, configuration))
+                .collect(toUnmodifiableSet());
+    }
+
+    private BeanDefinition createBeanDefinition(final Method beanMethod, final Object configuration) {
+        log.debug("Creating bean definition from {}.{}", beanMethod.getDeclaringClass().getName(), beanMethod.getName());
+        Class<?> beanType = beanMethod.getReturnType();
+        List<Class<?>> dependencies = Stream.of(beanMethod.getParameters()).map(Parameter::getType)
+                .collect(toUnmodifiableList());
+        return new BeanDefinition(beanType, dependencies, configuration, beanMethod);
     }
 
     private Set<Object> createConfigurations(final Set<Class<?>> configurationClasses) {
