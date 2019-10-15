@@ -28,7 +28,9 @@ public class ContextFactory {
         log.info("Creating context from configurations: {}", configurationClasses);
         Set<Object> configurations = createConfigurations(configurationClasses);
         Set<BeanDefinition> beanDefinitions = createBeanDefinitions(configurations);
+        BeanFactory beanFactory = new BeanFactory(beanDefinitions);
         Context context = new Context();
+        beanFactory.init(context);
         return context;
     }
 
