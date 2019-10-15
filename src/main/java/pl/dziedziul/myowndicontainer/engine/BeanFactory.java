@@ -17,8 +17,10 @@ class BeanFactory {
     public void init(Context context) {
         for (BeanDefinition beanDefinition : beanDefinitions) {
             Class<?> beanType = beanDefinition.getBeanType();
+            if (!context.containsBean(beanType)) {
                 Object bean = createBean(beanDefinition, context);
                 context.registerBean(beanType, bean);
+            }
         }
     }
 
