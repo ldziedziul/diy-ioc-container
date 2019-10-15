@@ -26,15 +26,20 @@ class BeanFactory {
         Class<?> beanType = beanDefinition.getBeanType();
         log.info("Creating bean {}", beanType.getName());
         Object[] constructorArgs = beanDefinition.getDependencies().stream()
-                .map(depType -> createDependencyBean(context, depType)).toArray();
+                .map(depType -> getOrCreateDependencyBean(context, depType)).toArray();
         return beanDefinition.createInstance(constructorArgs);
     }
 
-    private Object createDependencyBean(final Context context, final Class<?> beanType) {
-        BeanDefinition dependencyBeanDefinition = getBeanDefinition(beanType);
-        Object bean = createBean(dependencyBeanDefinition, context);
+    private Object getOrCreateDependencyBean(final Context context, final Class<?> beanType) {
+        if (context.containsBean(beanType)) {
+            return context.getBean(beanType);
+        } else {
+            BeanDefinition dependencyBeanDefinition = getBeanDefinition(beanType);
+            Object bean = createBean(dependencyBeanDefinition, context);
             context.registerBean(beanType, bean);
             return bean;
+        }
+
     }
 
     private BeanDefinition getBeanDefinition(final Class<?> beanType) {

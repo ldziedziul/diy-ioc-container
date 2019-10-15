@@ -13,6 +13,10 @@ public class Context {
         return (T) beanInstance;
     }
 
+    public boolean containsBean(final Class<?> clazz) {
+        return beans.containsKey(clazz);
+    }
+
     public void registerBean(Class<?> clazz, Object instance) {
         if (!clazz.isInstance(instance)) {
             throw new IllegalArgumentException("Object " + instance + " is not instance of " + clazz);
