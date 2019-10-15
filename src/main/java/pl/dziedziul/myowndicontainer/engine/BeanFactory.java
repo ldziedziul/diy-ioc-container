@@ -3,12 +3,15 @@ package pl.dziedziul.myowndicontainer.engine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 class BeanFactory {
     private static final Logger log = LoggerFactory.getLogger(BeanFactory.class);
 
     private final Set<BeanDefinition> beanDefinitions;
+    private final Set<Class<?>> beansCurrentlyInCreation = new HashSet<>();
 
     public BeanFactory(final Set<BeanDefinition> beanDefinitions) {
         this.beanDefinitions = beanDefinitions;
@@ -37,11 +40,20 @@ class BeanFactory {
             return context.getBean(beanType);
         } else {
             BeanDefinition dependencyBeanDefinition = getBeanDefinition(beanType);
-            Object bean = createBean(dependencyBeanDefinition, context);
+            Object bean = withCyclicCreationCheck(beanType, () -> createBean(dependencyBeanDefinition, context));
             context.registerBean(beanType, bean);
             return bean;
         }
+    }
 
+    private Object withCyclicCreationCheck(Class<?> beanType, Supplier<?> supplier) {
+        if (beansCurrentlyInCreation.contains(beanType)) {
+            throw new BeanCurrentlyInCreationException(beanType);
+        }
+        beansCurrentlyInCreation.add(beanType);
+        Object result = supplier.get();
+        beansCurrentlyInCreation.remove(beanType);
+        return result;
     }
 
     private BeanDefinition getBeanDefinition(final Class<?> beanType) {
