@@ -12,9 +12,11 @@ class BeanFactory {
 
     private final Set<BeanDefinition> beanDefinitions;
     private final Set<Class<?>> beansCurrentlyInCreation = new HashSet<>();
+    private final Set<BeanPostProcessor> beanPostProcessors;
 
-    public BeanFactory(final Set<BeanDefinition> beanDefinitions) {
+    public BeanFactory(final Set<BeanDefinition> beanDefinitions, Set<BeanPostProcessor> beanPostProcessors) {
         this.beanDefinitions = beanDefinitions;
+        this.beanPostProcessors = beanPostProcessors;
     }
 
     public void init(Context context) {
@@ -32,7 +34,12 @@ class BeanFactory {
         log.info("Creating bean {}", beanType.getName());
         Object[] constructorArgs = beanDefinition.getDependencies().stream()
                 .map(depType -> getOrCreateDependencyBean(context, depType)).toArray();
-        return beanDefinition.createInstance(constructorArgs);
+        Object instance = beanDefinition.createInstance(constructorArgs);
+        for (final BeanPostProcessor beanPostProcessor : beanPostProcessors) {
+            log.debug("Post processing bean {} with {} ", beanType, beanPostProcessor.getClass());
+            instance = beanPostProcessor.postProcess(instance);
+        }
+        return instance;
     }
 
     private Object getOrCreateDependencyBean(final Context context, final Class<?> beanType) {

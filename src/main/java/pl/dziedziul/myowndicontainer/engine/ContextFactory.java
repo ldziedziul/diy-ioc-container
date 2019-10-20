@@ -3,6 +3,7 @@ package pl.dziedziul.myowndicontainer.engine;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pl.dziedziul.myowndicontainer.engine.transaction.TransactionalBeanPostProcessor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -28,7 +29,8 @@ public class ContextFactory {
         log.info("Creating context from configurations: {}", configurationClasses);
         Set<Object> configurations = createConfigurations(configurationClasses);
         Set<BeanDefinition> beanDefinitions = createBeanDefinitions(configurations);
-        BeanFactory beanFactory = new BeanFactory(beanDefinitions);
+        Set<BeanPostProcessor> beanPostProcessors = Set.of(new TransactionalBeanPostProcessor());
+        BeanFactory beanFactory = new BeanFactory(beanDefinitions, beanPostProcessors);
         Context context = new Context();
         beanFactory.init(context);
         return context;

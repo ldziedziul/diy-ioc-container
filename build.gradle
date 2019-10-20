@@ -16,4 +16,6 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.11.1'
     implementation 'org.reflections:reflections:0.9.11'
     implementation 'ch.qos.logback:logback-classic:1.2.3'
+    implementation 'net.bytebuddy:byte-buddy:1.10.1'
+    implementation group: 'org.objenesis', name: 'objenesis', version: '3.0.1'
 }
